@@ -1,10 +1,14 @@
 # micro-js-html
+
+It's *actually* just javascript
+
 ## General Notes
 - basic html as js library to be used on client or server
 - compatible with node 12+
 - lightweight (no advanced features as seen in react or angular)
-- see tests for examples
 - intended to play nice with micro-js (microservice api framework)
+- the base load time, from local (micro-js) server to first client dom render, is <50ms
+- see tests for examples
 - need lots of other tag support (in active development)
 
 ## Basic Usage
@@ -12,9 +16,9 @@
 // server-side
 function getRequestHandler(req, res) {
   let htmlContent = html(body(
-    div({class: 'test'},
+    div({class: 'test' },
       p('this is a test paragraph'),
-      a({href: 'google.com'}, 'go to google')
+      a({ href: 'https://google.com' }, 'go to google')
     )
   )).render()
 
@@ -23,8 +27,11 @@ function getRequestHandler(req, res) {
 }
 
 // client-side
-document.querySelector('body').innerHTML = div({class: 'test'},
-  p('this is a test paragraph'),
-  a({href: 'google.com'}, 'go to google')
-).render()
+async function main() {
+  (await waitForElement('body')).innerHTML = div({ class: 'test' },
+    p('this is a test paragraph'),
+    a({ href: 'https://google.com' }, 'go to google')
+  ).render()
+}
+main().then(() => console.log('ready!'))
 ```

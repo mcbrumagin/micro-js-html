@@ -1,17 +1,17 @@
 const {
   html, body, div, p, a,
   form, label, input, option
-} = require('../src/index.js')
+} = require('../src/index.js').html
 
 function testBasicUsage() {
-  let component = html(body(
+  let Element = html(body(
     div({class: 'test'},
       p('this is a test paragraph'),
       a({href: 'google.com'}, 'go to google')
     )
   ))
 
-  let result = component.render()
+  let result = Element.render()
   let expectedResult = '<html><body><div class="test"><p>this is a test paragraph</p><a href="google.com">go to google</a></div></body></html>'
   if (result !== expectedResult) {
     throw new Error(`Expected:\n"${result}"\nto equal:\n"${expectedResult}"`)
@@ -20,7 +20,7 @@ function testBasicUsage() {
 /*
 */
 function testForm() {
-  let component = form(
+  let Element = form(
     label({ for: 'first-name' }),
     input({ type: 'text', id: 'first-name', name: 'first-name' }),
     label({ for: 'last-name' }),
@@ -28,7 +28,7 @@ function testForm() {
   )
   // TODO use option
 
-  let result = component.render()
+  let result = Element.render()
   let expectedResult = `
   <form>
     <label for="fname">First name:</label><br>
