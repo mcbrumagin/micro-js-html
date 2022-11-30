@@ -33,6 +33,7 @@
       // console.log('location changed!', {oldUrl, newUrl})
       let hash = getHash(newUrl)
       // console.log({hash})
+      if (!/\/$/ig.test(hash)) hash += '/'
       let pathFragments = hash.replace(/^\//ig,'').split('/')
       // console.log({pathFragments})
       let pathIndex = 0
@@ -41,11 +42,19 @@
         let path = pathFragments[pathIndex]
         result = resolvePath(path, result || routeMap)
         pathIndex++
-        // console.log({result, test1: !!result, test2: !(result instanceof Element) })
-      } while (result && !(result instanceof Element))
-      let target = await micro.waitForElement(renderLocation)
+        // console.log({result, test1: !!result, test2: !(result instanceof Element), test3: !(typeof result === 'function') })
+      } while (result && !(result instanceof Element) && !(typeof result === 'function'))
       // console.log({result})
-      target.innerHTML = result.render()
+      if (typeof result === 'function') {
+        // console.log('calling route fn')
+        result = await result()
+        // console.log('route ready')
+      }
+      result = result.render()
+
+      let target = await micro.waitForElement(renderLocation)
+      // console.log('result before insert', { target, result })
+      target.innerHTML = result + ''
     }
 
     window.addEventListener('hashchange', hashChangeHandler)

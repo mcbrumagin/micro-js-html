@@ -4,10 +4,9 @@
   class Element {
 
     bindEventAttributes() {
-      // console.log({attr:this.attributes})
       for (let attr in this.attributes) {
         if (/^on/i.test(attr) && typeof this.attributes[attr] === 'function') {
-          this.__listeners__ = {} // TODO set-map?
+          // console.log({attr})
           this.addEventListener(attr, this.attributes[attr])
           delete this.attributes[attr]
         }
@@ -17,6 +16,7 @@
     constructor(...args) {
       if (typeof args[0] === 'object' && !(args[0] instanceof Element)) {
         this.attributes = args[0]
+        this.__listeners__ = {} // TODO set-map?
         this.bindEventAttributes()
         args = args.slice(1)
       }
@@ -26,13 +26,15 @@
     addEventListener(eventName, handler) {
       // TODO if !micro, this is server side and needs to be rendered as an additional script
       let lastHandlerName = Object.keys(micro.__listeners__).slice(-1)[0]
+      // console.log({lastHandlerName})
       let handlerName = lastHandlerName ? Number(lastHandlerName.replace(/\_/ig,'')) : 0
       handlerName++
       this.__listeners__[handlerName] = eventName
       micro.__listeners__[handlerName] = handler
+      // console.log({ "this.__listeners__[handlerName]": this.__listeners__[handlerName], eventName, handler })
     }
 
-    render__listeners__() {
+    renderListeners() {
       let events = {}
 
       for (let handlerName in this.__listeners__) {
@@ -45,6 +47,7 @@
       let domEventHandlerText = ''
       for (let event in events) {
         let domEventHandlers = events[event]
+        // console.log({domEventHandlers, events, event})
         domEventHandlerText += ` ${event}="${domEventHandlers.join(';')}"`
       }
       // console.log({domEventHandlerText})
@@ -61,14 +64,14 @@
     }
 
     render() {
-      let result = `<${this.tag}${this.renderAttributes()}${this.render__listeners__()}>${
+      let result = `<${this.tag}${this.renderAttributes()}${this.renderListeners()}>${
         this.children.map(elem => elem && elem.toString() || '').join('')
-      }</${this.tag}>`
-      //console.log({result})
+      }${this.isVoid ? '' : `</${this.tag}>`}`
+      // console.log({result})
 
       // TODO this is a bad hack... need actual dom change event listener to call this
       if (this.ready) setTimeout(this.ready, 5)
-      
+
       return result
     }
 
