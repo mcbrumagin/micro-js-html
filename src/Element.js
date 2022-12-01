@@ -79,6 +79,12 @@
       return this.render()
     }
 
+    toDomNode() {
+      let rawHtmlString = this.render()
+      let newNodeDom = new DOMParser().parseFromString(rawHtmlString, 'text/html')
+      return newNodeDom.querySelector(this.tag)
+    }
+
     onReady(fn) {
       this.ready = fn
       return this
