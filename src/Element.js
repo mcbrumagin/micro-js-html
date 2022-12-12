@@ -70,13 +70,21 @@
       // console.log({result})
 
       // TODO this is a bad hack... need actual dom change event listener to call this
-      if (this.ready) setTimeout(this.ready, 5)
+      if (this.ready) setTimeout(this.ready, 5) // TODO try process.nextTick?
 
       return result
     }
 
+    fromString() {
+      throw new Error('Unimplemented')
+    }
+
     toString() {
       return this.render()
+    }
+
+    fromDomNode() {
+      throw new Error('Unimplemented')
     }
 
     toDomNode() {

@@ -1,6 +1,8 @@
 // client-init.js
 const micro = {
   __listeners__: {},
+  
+  routes: {},
 
   // helper for internal library functions
   set library(fn) {
@@ -16,6 +18,9 @@ const micro = {
     if (!fn.name) throw new Error('Exports must be a named function')
     this.modules[fn.name] = fn
   }
+
+  // TODO
+  // support for micro.exports.myNewModule = ...
 }
 
 

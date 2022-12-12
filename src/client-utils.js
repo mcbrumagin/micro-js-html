@@ -31,9 +31,127 @@
       head.appendChild(newLinkNode)
     })
   }
-  
-  // TODO non-hash router
-  micro.library = function hashRouter(routeMap, renderLocation = 'body') {
+
+  // TODO make this work on server-side
+  micro.library = function router(routeMap, options) {
+    if (typeof options !== 'object') {
+      options = options
+        ? { renderLocation: options }
+        : { renderLocation: 'body' }
+    }
+    // on all link clicks, if isRouterEnabled, prevent default and trigger resolveRoute fn
+
+    // TODO validate routeMap
+
+    console.log('BINDING')
+    document.addEventListener('click', async event => {
+      event.preventDefault()
+      console.log('CLICK', event.target)
+      if (event.target.localName === 'a') {
+        await routeChangeHandler(event)
+      }
+    })
+
+    const resolvePath = (path = '', routeMap) => {
+      // console.log({path, routeMap})
+      for (let route in routeMap) {
+        // console.log({route, path})
+        if (route.replace(/\//ig, '') === path) {
+          // console.log('MATCH')
+          return routeMap[route]
+        }
+      }
+      // console.log('failed match', path, 'in ' + Object.keys(routeMap).join(', '))
+    }
+
+    let stateId = 0
+    let history = {} // TODO reset?
+    const routeChangeHandler = async event => {
+      let oldUrl = window.location.href
+      let url = oldUrl
+
+      if (options.before) await options.before(event)
+      if (event) {
+        let newPath = event.target.getAttribute('href')
+        // console.log({hash})
+        // if (!/\/$/ig.test(newPath)) newPath += '/'
+        // TODO url = ?
+        // console.log({newPath})
+        url = newPath
+      } else {
+        url = url.replace(/^.+\:\/\/.+\:?[0-9]+\/?/i, '/')
+        console.log({url})
+      }
+      let pathFragments = url.replace(/^\//ig,'').split('/')
+      // console.log({pathFragments})
+      let pathIndex = 0
+      let result
+      do {
+        let path = pathFragments[pathIndex]
+        result = resolvePath(path, result || routeMap)
+        pathIndex++
+        // console.log({result, test1: !!result, test2: !(result instanceof Element), test3: !(typeof result === 'function') })
+      } while (result && !(result instanceof Element) && !(typeof result === 'function'))
+      // TODO while (typeof result === 'object')?
+
+      const fn = result
+      stateId++
+      history[stateId] = { fn, url }
+
+      // console.log({result})
+      if (typeof result === 'function') {
+        // console.log('calling route fn')
+        result = await result()
+        // console.log('route ready')
+      }
+
+      if (options.renderLocation != null) {
+        let target = await micro.waitForElement(options.renderLocation)
+        // console.log('result before insert', { target, result })
+        target.innerHTML = result + ''
+      }
+
+      // window.location.href = url
+
+      // console.log('PUSH', { stateId, url })
+      if (event) {
+        window.history.pushState({ stateId, /* pageTitle: result.title */ }, '', url)
+      }
+
+      if (options.after) await options.after(event)
+    }
+
+    window.onpopstate = async event => {
+      // TODO this doesn't do all the things it should?
+      // console.log('POP')
+      if (event.state) {
+        const { stateId } = event.state
+        if (history[stateId]) {
+          // TODO is this logic redundant with else? does it save any time? do we need history local var?
+          // console.log({history: history[stateId]})
+          if (options.before) await options.before(event)
+
+          const { fn, url } = history[stateId] // TODO fallback if undefined?
+          const html = await fn()
+          // console.log('POP', { stateId, html, url })
+          let target = await micro.waitForElement(options.renderLocation)
+          target.innerHTML = html + ''
+
+          if (options.after) await options.after(event)
+        } else {
+          await routeChangeHandler()
+        }
+        // document.title = event.state.pageTitle
+      }
+    }
+
+    routeChangeHandler()
+
+    micro.routes = routeMap
+  }
+
+  micro.library = function hashRouter(routeMap, renderLocation = null) {
+    // without render location, simply run routeMap fns (client can scroll items into view, etc)
     // TODO validate routeMap
     // TODO run router once on startup
     const { Element } = micro
@@ -66,17 +184,21 @@
         pathIndex++
         // console.log({result, test1: !!result, test2: !(result instanceof Element), test3: !(typeof result === 'function') })
       } while (result && !(result instanceof Element) && !(typeof result === 'function'))
+      // TODO while (typeof result === 'object')?
+
       // console.log({result})
       if (typeof result === 'function') {
         // console.log('calling route fn')
         result = await result()
         // console.log('route ready')
       }
-      result = result.render()
 
-      let target = await micro.waitForElement(renderLocation)
-      // console.log('result before insert', { target, result })
-      target.innerHTML = result + ''
+      if (renderLocation != null) {
+        result = result.render()
+        let target = await micro.waitForElement(renderLocation)
+        // console.log('result before insert', { target, result })
+        target.innerHTML = result + ''
+      }
     }
 
     window.addEventListener('hashchange', hashChangeHandler)
