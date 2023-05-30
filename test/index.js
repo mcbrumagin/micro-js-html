@@ -3,6 +3,8 @@ const {
   form, label, input, option
 } = require('../src/index.js').html
 
+const removeNewLines = str => str.replace(/\n[\s]+/ig,'')
+
 function testBasicUsage() {
   let Element = html(body(
     div({class: 'test'},
@@ -21,21 +23,20 @@ function testBasicUsage() {
 */
 function testForm() {
   let Element = form(
-    label({ for: 'first-name' }),
+    label({ for: 'first-name' }, 'First name:'),
     input({ type: 'text', id: 'first-name', name: 'first-name' }),
-    label({ for: 'last-name' }),
+    label({ for: 'last-name' }, 'Last name:'),
     input({ type: 'text', id: 'last-name', name: 'last-name' })
   )
   // TODO use option
 
   let result = Element.render()
-  let expectedResult = `
-  <form>
-    <label for="fname">First name:</label><br>
-    <input type="text" id="fname" name="fname"><br>
-    <label for="lname">Last name:</label><br>
-    <input type="text" id="lname" name="lname">
-  </form>` // TODO something to remove lines and space between ">" and "<"
+  let expectedResult = removeNewLines(`<form>
+    <label for="first-name">First name:</label>
+    <input type="text" id="first-name" name="first-name">
+    <label for="last-name">Last name:</label>
+    <input type="text" id="last-name" name="last-name">
+  </form>`)
   if (result !== expectedResult) {
     throw new Error(`Expected:\n"${result}"\nto equal:\n"${expectedResult}"`)
   }
