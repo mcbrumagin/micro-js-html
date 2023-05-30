@@ -1,7 +1,7 @@
 // client-init.js
 const micro = {
   __listeners__: {},
-  
+
   routes: {},
 
   // helper for internal library functions
@@ -22,5 +22,3 @@ const micro = {
   // TODO
   // support for micro.exports.myNewModule = ...
 }
-
-

@@ -64,8 +64,6 @@
       // console.log('failed match', path, 'in ' + Object.keys(routeMap).join(', '))
     }
 
-    let stateId = 0
-    let history = {} // TODO reset?
     const routeChangeHandler = async event => {
       let oldUrl = window.location.href
       let url = oldUrl
@@ -94,10 +92,6 @@
       } while (result && !(result instanceof Element) && !(typeof result === 'function'))
       // TODO while (typeof result === 'object')?
 
-      const fn = result
-      stateId++
-      history[stateId] = { fn, url }
-
       // console.log({result})
       if (typeof result === 'function') {
         // console.log('calling route fn')
@@ -115,34 +109,14 @@
 
       // console.log('PUSH', { stateId, url })
       if (event) {
-        window.history.pushState({ stateId, /* pageTitle: result.title */ }, '', url)
+        window.history.pushState({}, '', url)
       }
 
       if (options.after) await options.after(event)
     }
 
     window.onpopstate = async event => {
-      // TODO this doesn't do all the things it should?
-      // console.log('POP')
-      if (event.state) {
-        const { stateId } = event.state
-        if (history[stateId]) {
-          // TODO is this logic redundant with else? does it save any time? do we need history local var?
-          // console.log({history: history[stateId]})
-          if (options.before) await options.before(event)
-
-          const { fn, url } = history[stateId] // TODO fallback if undefined?
-          const html = await fn()
-          // console.log('POP', { stateId, html, url })
-          let target = await micro.waitForElement(options.renderLocation)
-          target.innerHTML = html + ''
-
-          if (options.after) await options.after(event)
-        } else {
-          await routeChangeHandler()
-        }
-        // document.title = event.state.pageTitle
-      }
+      await routeChangeHandler()
     }
 
     routeChangeHandler()
