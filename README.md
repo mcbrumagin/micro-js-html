@@ -9,6 +9,8 @@ It's *actually* just javascript
 - intended to play nice with micro-js (microservice api framework)
 - the base load time, from local (micro-js) server to first client dom render, is <50ms
 - see tests for examples
+- planned support for micro-js callService integration and context injection
+- planned support for micro-js logger; log/meter from client to server for extra visibility
 - need lots of other tag support (in active development)
 
 ## Basic Usage
