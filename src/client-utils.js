@@ -42,8 +42,6 @@
     // on all link clicks, if isRouterEnabled, prevent default and trigger resolveRoute fn
 
     // TODO validate routeMap
-
-    console.log('BINDING')
     document.addEventListener('click', async event => {
       event.preventDefault()
       console.log('CLICK', event.target)
@@ -53,20 +51,18 @@
     })
 
     const resolvePath = (path = '', routeMap) => {
-      // console.log({path, routeMap})
       for (let route in routeMap) {
-        // console.log({route, path})
         if (route.replace(/\//ig, '') === path) {
-          // console.log('MATCH')
           return routeMap[route]
         }
       }
-      // console.log('failed match', path, 'in ' + Object.keys(routeMap).join(', '))
+      console.warn('failed match', path, 'in ' + Object.keys(routeMap).join(', '))
     }
 
     const routeChangeHandler = async event => {
       let oldUrl = window.location.href
       let url = oldUrl
+
 
       if (options.before) await options.before(event)
       if (event) {
@@ -80,12 +76,18 @@
         url = url.replace(/^.+\:\/\/.+\:?[0-9]+\/?/i, '/')
         console.log({url})
       }
+
+      // added for link download since the url shouldn't change anyway
+      if (!url) return // TODO VERIFY THIS IS GOOD
+      
       let pathFragments = url.replace(/^\//ig,'').split('/')
       // console.log({pathFragments})
+
       let pathIndex = 0
       let result
       do {
         let path = pathFragments[pathIndex]
+        // if (!path.endsWith('/')) path += '/' // TODO VERIFY
         result = resolvePath(path, result || routeMap)
         pathIndex++
         // console.log({result, test1: !!result, test2: !(result instanceof Element), test3: !(typeof result === 'function') })

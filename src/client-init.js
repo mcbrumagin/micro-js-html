@@ -18,7 +18,4 @@ const micro = {
     if (!fn.name) throw new Error('Exports must be a named function')
     this.modules[fn.name] = fn
   }
-
-  // TODO
-  // support for micro.exports.myNewModule = ...
 }
