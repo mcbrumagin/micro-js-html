@@ -100,6 +100,8 @@ const htmlElements = [
   class Audio extends Element { tag = 'audio' },
   class Video extends Element { tag = 'video' },
   class Track extends Element { tag = 'track'; isVoid = true },
+  class Figure extends Element { tag = 'figure' },
+  class Figcaption extends Element { tag = 'figcaption' },
   
   // Tables
   class Table extends Element { tag = 'table' },

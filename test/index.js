@@ -1,3 +1,5 @@
+import { htmlTags} from '../src/index.js'
+
 const {
   html, body, div, p, a, span, h1, h2, h3, br, hr,
   header, footer, main, section, article, aside, nav,
@@ -7,7 +9,7 @@ const {
   img, audio, video, source, figure, figcaption,
   strong, em, mark, code, abbr, time, small,
   blockquote, pre, address
-} = require('../src/index.js').html
+} = htmlTags
 
 global.micro = { __listeners__: {} }
 
@@ -22,7 +24,7 @@ function testBasicUsage() {
   ))
 
   let result = Element.render()
-  let expectedResult = '<html><body><div class="test"><p>this is a test paragraph</p><a href="google.com">go to google</a></div></body></html>'
+  let expectedResult = '<!DOCTYPE html><html><body><div class="test"><p>this is a test paragraph</p><a href="google.com">go to google</a></div></body></html>'
   if (result !== expectedResult) {
     throw new Error(`Expected:\n"${result}"\nto equal:\n"${expectedResult}"`)
   }
@@ -69,7 +71,8 @@ function testSemanticElements() {
   )
 
   let result = Element.render()
-  let expected = removeNewLines(`<html>
+  let expected = removeNewLines(`<!DOCTYPE html>
+    <html>
     <body>
       <header>
         <h1>Site Title</h1>
