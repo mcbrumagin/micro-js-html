@@ -1,11 +1,20 @@
-const Element = require('./Element.js')
-const elements = require('./elements.js')
-const html = require('./html.js')
-const loadClient = require('./loadClient.js')
+import Element from './Element.js'
+import elements from './elements.js'
+import htmlTags from './html-tags.js'
+// import loadClient from './loadClient.js'
 
-module.exports = {
+// Named exports
+export {
   Element,
   elements,
-  html,
-  loadClient
+  htmlTags,
+  // loadClient
+}
+
+// Default export for backward compatibility
+export default {
+  Element,
+  elements,
+  htmlTags,
+  // loadClient
 }

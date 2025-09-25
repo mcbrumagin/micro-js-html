@@ -1,8 +1,20 @@
 {
   "name": "micro-js-html",
   "version": "0.0.2",
-  "description": "",
+  "description": "HTML as JavaScript library for client and server",
+  "type": "module",
   "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./element": "./src/Element.js",
+    "./elements": "./src/elements.js",
+    "./html": "./src/html.js",
+    "./load-client": "./src/loadClient.js",
+    "./utils": "./src/utils.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "test": "node test/index.js"
   },

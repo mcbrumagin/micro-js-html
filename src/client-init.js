@@ -1,5 +1,5 @@
 // client-init.js
-const micro = {
+window.micro = {
   __listeners__: {},
 
   routes: {},
@@ -19,3 +19,5 @@ const micro = {
     this.modules[fn.name] = fn
   }
 }
+
+// if (window) window.micro = global.micro

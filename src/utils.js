@@ -1,10 +1,8 @@
-// utils.js
-{ // arbitrary scope to avoid global variables on client
+// utils.js - Pure ESM module
 
-  async function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
-  if (typeof micro !== undefined) micro.library = sleep
-  else module.exports = { sleep }
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
+
+export { sleep }
+export default { sleep }
