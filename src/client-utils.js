@@ -75,7 +75,9 @@ window.micro.library = function router(routeMap, options) {
       // console.log({newPath})
       url = newPath
     } else {
-      url = url.replace(/^.+\:\/\/.+\:?[0-9]+\/?/i, '/')
+      // url = url.replace(/^.+\:\/\/.+\:?[0-9]+\/?/i, '/')
+      url = url.replace(/^.+\:\/\/[^\/]+/i, '') // TODO verify
+      if (!url) url = '/' // If URL becomes empty after removing protocol/domain, default to root
       // Debug: URL change (consider using logger if needed)
     }
 
