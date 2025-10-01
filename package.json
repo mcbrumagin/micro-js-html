@@ -1,6 +1,6 @@
 {
   "name": "micro-js-html",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "HTML as JavaScript library for client and server",
   "type": "module",
   "main": "src/index.js",

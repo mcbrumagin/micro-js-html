@@ -1,4 +1,3 @@
-// client-init.js
 window.micro = {
   __listeners__: {},
 
@@ -19,5 +18,3 @@ window.micro = {
     this.modules[fn.name] = fn
   }
 }
-
-// if (window) window.micro = global.micro

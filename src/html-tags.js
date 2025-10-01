@@ -1,4 +1,3 @@
-// html.js - Pure ESM module
 import elements from './elements.js'
 
 const htmlTags = {}

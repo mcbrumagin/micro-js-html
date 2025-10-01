@@ -1,5 +1,3 @@
-// utils.js - Pure ESM module
-
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
