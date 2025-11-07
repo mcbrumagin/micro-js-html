@@ -1,3 +1,12 @@
+
+// List of boolean HTML attributes that should be rendered without values
+const booleanAttributes = new Set([
+  'disabled', 'checked', 'selected', 'readonly', 'required',
+  'autofocus', 'autoplay', 'controls', 'loop', 'muted',
+  'multiple', 'hidden', 'open', 'reversed', 'scoped',
+  'async', 'defer', 'ismap', 'novalidate', 'formnovalidate'
+])
+
 export default class Element {
 
   bindEventAttributes() {
@@ -50,7 +59,22 @@ export default class Element {
     let attributes = ''
     for (let attrName in this.attributes) {
       let attrVal = this.attributes[attrName]
-      attributes += ` ${attrName}="${attrVal}"`
+      
+      // Skip rendering if value is explicitly false, null, or undefined
+      if (attrVal === false || attrVal === null || attrVal === undefined) {
+        continue
+      }
+      
+      // For boolean attributes, render just the attribute name (no value)
+      if (booleanAttributes.has(attrName.toLowerCase())) {
+        // Only render if truthy
+        if (attrVal) {
+          attributes += ` ${attrName}`
+        }
+      } else {
+        // For non-boolean attributes, render with value
+        attributes += ` ${attrName}="${attrVal}"`
+      }
     }
     return attributes
   }
