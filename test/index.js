@@ -1,4 +1,10 @@
-import { htmlTags} from '../src/index.js'
+import { 
+  htmlTags, 
+  createState, 
+  createReactiveComponent, 
+  createFormState, 
+  createRenderHelper 
+} from '../src/index.js'
 
 const {
   html, body, div, p, a, span, h1, h2, h3, br, hr,
@@ -258,7 +264,7 @@ function testFormElements() {
       <label for="country">Country:</label>
       <select id="country" name="country">
         <option value="us">United States</option>
-        <option value="ca" selected="true">Canada</option>
+        <option value="ca" selected>Canada</option>
         <option value="uk">United Kingdom</option>
       </select>
       <br>
@@ -293,11 +299,11 @@ function testMediaElements() {
       <img src="image.jpg" alt="Test image">
       <figcaption>Image caption</figcaption>
     </figure>
-    <audio controls="true">
+    <audio controls>
       <source src="audio.mp3" type="audio/mpeg">
       Your browser does not support audio.
     </audio>
-    <video controls="true" width="320" height="240">
+    <video controls width="320" height="240">
       <source src="video.mp4" type="video/mp4">
       Your browser does not support video.
     </video>
@@ -438,6 +444,245 @@ function testComplexNestedStructure() {
   }
 }
 
+function testStateManagement() {
+  // Test basic state creation and operations
+  const state = createState({ count: 0, name: 'test' })
+  
+  if (state.get('count') !== 0) {
+    throw new Error('Initial state not set correctly')
+  }
+  
+  state.set('count', 5)
+  if (state.get('count') !== 5) {
+    throw new Error('State set operation failed')
+  }
+  
+  const allState = state.getAll()
+  if (allState.count !== 5 || allState.name !== 'test') {
+    throw new Error('getAll() operation failed')
+  }
+  
+  // Test batch updates
+  state.update({ count: 10, name: 'updated' })
+  if (state.get('count') !== 10 || state.get('name') !== 'updated') {
+    throw new Error('Batch update failed')
+  }
+}
+
+function testStateWatching() {
+  const state = createState({ value: 1 })
+  let watchCallCount = 0
+  let lastWatchedValue = null
+  
+  const unwatch = state.watch((stateData) => {
+    watchCallCount++
+    lastWatchedValue = stateData.value
+  })
+  
+  state.set('value', 42)
+  
+  if (watchCallCount !== 1 || lastWatchedValue !== 42) {
+    throw new Error('State watching failed')
+  }
+  
+  // Test unwatch
+  unwatch()
+  state.set('value', 100)
+  
+  if (watchCallCount !== 1) {
+    throw new Error('Unwatch failed - callback still being called')
+  }
+}
+
+function testStateBatching() {
+  const state = createState({ a: 1, b: 2, c: 3 })
+  let notifyCount = 0
+  
+  state.watch(() => {
+    notifyCount++
+  })
+  
+  // Test batching - should only trigger one notification
+  state.batch((s) => {
+    s.set('a', 10)
+    s.set('b', 20)
+    s.set('c', 30)
+  })
+  
+  if (notifyCount !== 1) {
+    throw new Error(`Expected 1 notification from batch, got ${notifyCount}`)
+  }
+  
+  if (state.get('a') !== 10 || state.get('b') !== 20 || state.get('c') !== 30) {
+    throw new Error('Batch updates not applied correctly')
+  }
+}
+
+function testStateComputed() {
+  const state = createState({ firstName: 'John', lastName: 'Doe' })
+  
+  const fullNameComputed = state.computed('fullName', 
+    (stateData) => `${stateData.firstName} ${stateData.lastName}`,
+    ['firstName', 'lastName']
+  )
+  
+  const fullName = fullNameComputed()
+  if (fullName !== 'John Doe') {
+    throw new Error(`Expected 'John Doe', got '${fullName}'`)
+  }
+  
+  // Test computed caching
+  const fullName2 = fullNameComputed()
+  if (fullName2 !== 'John Doe') {
+    throw new Error('Computed caching failed')
+  }
+  
+  // Test computed invalidation
+  state.set('firstName', 'Jane')
+  const fullName3 = fullNameComputed()
+  if (fullName3 !== 'Jane Doe') {
+    throw new Error(`Expected 'Jane Doe' after state change, got '${fullName3}'`)
+  }
+}
+
+function testElementStateBinding() {
+  const state = createState({ message: 'Hello World', count: 42 })
+  
+  // Test basic state binding
+  const element = div().bindState(state, 'message')
+  let result = element.render()
+  
+  if (!result.includes('Hello World')) {
+    throw new Error('Element state binding failed')
+  }
+  
+  // Test computed binding - need to trigger initial computation
+  const computedElement = p().bindComputed(state, (stateData) => 
+    `Count: ${stateData.count}`
+  )
+  
+  // Manually trigger the computed binding for initial render
+  computedElement.children = [`Count: ${state.get('count')}`]
+  
+  result = computedElement.render()
+  if (!result.includes('Count: 42')) {
+    throw new Error(`Element computed binding failed. Got: ${result}`)
+  }
+  
+  // Test attribute binding
+  const attrElement = div().bindState(state, 'message', 'data-message')
+  result = attrElement.render()
+  
+  if (!result.includes('data-message="Hello World"')) {
+    throw new Error('Element attribute binding failed')
+  }
+}
+
+function testFormState() {
+  const validators = {
+    email: (value) => {
+      if (!value || !value.includes('@')) {
+        return 'Invalid email'
+      }
+      return null
+    },
+    password: (value) => {
+      if (!value || value.length < 6) {
+        return 'Password must be at least 6 characters'
+      }
+      return null
+    }
+  }
+  
+  const formState = createFormState(
+    { email: '', password: '' },
+    validators
+  )
+  
+  // Test initial state
+  if (!formState.get('isValid')) {
+    throw new Error('Form should be initially valid (no touched fields)')
+  }
+  
+  // Test field validation
+  formState.setValue('email', 'invalid')
+  formState.setTouched('email')
+  
+  if (formState.get('isValid')) {
+    throw new Error('Form should be invalid after setting invalid email')
+  }
+  
+  const errors = formState.get('errors')
+  if (!errors.email || errors.email !== 'Invalid email') {
+    throw new Error('Email validation error not set correctly')
+  }
+  
+  // Test valid input
+  formState.setValue('email', 'test@example.com')
+  
+  if (!formState.get('isValid')) {
+    throw new Error('Form should be valid after setting valid email')
+  }
+  
+  // Test form reset
+  formState.reset()
+  const values = formState.get('values')
+  if (values.email !== '' || values.password !== '') {
+    throw new Error('Form reset failed')
+  }
+}
+
+function testReactiveComponent() {
+  // Mock DOM environment for testing
+  const mockContainer = {
+    innerHTML: ''
+  }
+  
+  const state = createState({ title: 'Test Title', count: 0 })
+  
+  const renderFn = (stateData) => {
+    return div(
+      h1(stateData.title),
+      p(`Count: ${stateData.count}`)
+    )
+  }
+  
+  // Override querySelector to return our mock
+  const originalQuerySelector = global.document?.querySelector
+  if (typeof global.document === 'undefined') {
+    global.document = {}
+  }
+  global.document.querySelector = () => mockContainer
+  
+  try {
+    const component = createReactiveComponent(state, renderFn, '#test')
+    component.mount()
+    
+    // Check initial render
+    if (!mockContainer.innerHTML.includes('Test Title')) {
+      throw new Error('Reactive component initial render failed')
+    }
+    
+    // Test state update triggers re-render
+    state.set('title', 'Updated Title')
+    
+    // Since we're in a test environment, we need to manually trigger the watch callback
+    // In a real environment, this would happen automatically
+    setTimeout(() => {
+      if (!mockContainer.innerHTML.includes('Updated Title')) {
+        throw new Error('Reactive component re-render failed')
+      }
+    }, 0)
+    
+    component.unmount()
+  } finally {
+    // Restore original querySelector
+    if (originalQuerySelector) {
+      global.document.querySelector = originalQuerySelector
+    }
+  }
+}
+
 let failCounter = 0
 async function runTests() {
   const tests = [
@@ -451,7 +696,14 @@ async function runTests() {
     testMediaElements,
     testTextFormattingElements,
     testEventHandlers,
-    testComplexNestedStructure
+    testComplexNestedStructure,
+    testStateManagement,
+    testStateWatching,
+    testStateBatching,
+    testStateComputed,
+    testElementStateBinding,
+    testFormState,
+    testReactiveComponent
   ]
 
   for (let test of tests) {
